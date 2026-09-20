@@ -66,6 +66,12 @@
     var authorLine = util.el('div', 'question-card__author');
     var avatar = util.el('span', 'avatar', q.author.nick ? q.author.nick.charAt(0) : '');
     avatar.setAttribute('data-avatar', String(q.author.avatar));
+    var avatarIll = (CW.icons && CW.icons.avatar) ? CW.icons.avatar(q.author.avatar) : null;
+    if (avatarIll) {
+      avatar.textContent = '';
+      avatarIll.setAttribute('aria-hidden', 'true');
+      avatar.appendChild(avatarIll);
+    }
     authorLine.appendChild(avatar);
     authorLine.appendChild(util.el('span', 'author__nick', q.author.nick));
     authorLine.appendChild(util.el('span', 'question-card__time', util.ago(q.agoMin)));
@@ -153,6 +159,12 @@
     if (avatarEl) {
       avatarEl.textContent = a.author.nick ? a.author.nick.charAt(0) : '';
       avatarEl.setAttribute('data-avatar', String(a.author.avatar));
+      var answerAvatarIll = (CW.icons && CW.icons.avatar) ? CW.icons.avatar(a.author.avatar) : null;
+      if (answerAvatarIll) {
+        avatarEl.textContent = '';
+        answerAvatarIll.setAttribute('aria-hidden', 'true');
+        avatarEl.appendChild(answerAvatarIll);
+      }
     }
     util.setText(card, 'nick', a.author.nick);
     util.setText(card, 'time', util.ago(a.agoMin));

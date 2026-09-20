@@ -1,0 +1,63 @@
+/* ==========================================================================
+   창업 와글 — live.css
+   room-grid 카드가 실시간으로 살아 움직이는 것처럼 보이게 하는 연출.
+   app.css 다음에 로드되며 그 :root 토큰만 사용합니다.
+   ========================================================================== */
+
+.room-card.is-fresh {
+  animation: cw-live-fresh 900ms var(--ease-standard, ease-out);
+}
+
+@keyframes cw-live-fresh {
+  0% {
+    background-color: var(--orange-soft);
+    box-shadow: 0 0 0 2px var(--orange-line);
+  }
+  100% {
+    background-color: var(--card);
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+.is-bump {
+  display: inline-block;
+  animation: cw-live-bump 900ms var(--ease-standard, ease-out);
+  color: var(--orange-ink);
+}
+
+@keyframes cw-live-bump {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.live-dot.is-live {
+  animation: cw-live-pulse 2s ease-in-out infinite;
+}
+
+@keyframes cw-live-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 3px rgba(18, 161, 80, 0.16);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(18, 161, 80, 0.06);
+    opacity: 0.85;
+  }
+}
+
+.room-card__icon {
+  width: 22px;
+  height: 22px;
+  color: var(--orange);
+  flex: 0 0 auto;
+}
+
+/* ---------- 동작 축소 선호 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .room-card.is-fresh,
+  .is-bump,
+  .live-dot.is-live {
+    animation: none !important;
+  }
+}

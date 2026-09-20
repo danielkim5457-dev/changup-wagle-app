@@ -55,6 +55,11 @@
   function renderRoute(route) {
     currentRoute = route;
 
+    // 방 목록의 실시간 펄스는 그 화면에서만 돈다. 여기서 먼저 끄지 않으면
+    // 화면을 떠난 뒤에도 다음 틱(최대 3.4초)까지 데이터를 계속 건드린다.
+    // 방 목록 뷰가 자기 render 끝에서 다시 켠다.
+    if (CW.live) CW.live.stop();
+
     var view = CW.views[route.name];
     currentView = view || null;
 
@@ -125,6 +130,7 @@
   }
 
   function boot() {
+    CW.intro.start();
     CW.store.boot();
 
     appEl = document.getElementById('app');

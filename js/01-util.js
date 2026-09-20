@@ -27,7 +27,11 @@
 
   function slot(node, name) {
     if (!node) return null;
-    return node.querySelector('[data-slot="' + name + '"]');
+    var sel = '[data-slot="' + name + '"]';
+    // tpl-tag-chip과 tpl-empty는 루트 요소 자체가 슬롯이다.
+    // querySelector는 루트를 매치하지 않으므로 먼저 자기 자신을 본다.
+    if (node.matches && node.matches(sel)) return node;
+    return node.querySelector(sel);
   }
 
   function setText(node, name, text) {

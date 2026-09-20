@@ -33,6 +33,106 @@
     return catOk && stageOk;
   }
 
+  function addCatIcon(card, room) {
+    if (!CW.icons || !CW.icons.cat || !CW.icons.cat[room.cat]) return;
+    var symbolId = CW.icons.cat[room.cat];
+    if (!symbolId || typeof CW.icons.use !== 'function') return;
+    var icon = CW.icons.use(symbolId, 'room-card__icon');
+    if (!icon) return;
+    var head = card.querySelector('.room-card__head');
+    if (head) head.insertBefore(icon, head.firstChild);
+  }
+
+  // Applies derived stats (title/time/unread/live) to an existing card's
+  // slots and reports which visible bits actually changed, so the caller
+  // can flash only what moved.
+  function applyStats(card, stats) {
+    var titleEl = util.slot(card, 'title');
+    var timeEl = util.slot(card, 'time');
+    var unreadEl = util.slot(card, 'unread');
+    var liveDot = card.querySelector('.live-dot');
+
+    var newTitle = stats.lastTitle || '아직 조용해요';
+    var newTime = stats.lastTitle ? util.ago(stats.agoMin) : '';
+    var newUnreadText = stats.unread > 0 ? '새 글 ' + stats.unread : '';
+
+    var titleChanged = !!titleEl && titleEl.textContent !== newTitle;
+    var timeChanged = !!timeEl && timeEl.textContent !== newTime;
+    var unreadChanged = !!unreadEl && unreadEl.textContent !== newUnreadText;
+
+    util.setText(card, 'title', newTitle);
+    util.setText(card, 'time', newTime);
+
+    if (stats.unread > 0) {
+      util.setText(card, 'unread', newUnreadText);
+      if (unreadEl) unreadEl.classList.remove('is-hidden');
+    } else {
+      util.setText(card, 'unread', '');
+      if (unreadEl) unreadEl.classList.add('is-hidden');
+    }
+
+    if (liveDot) {
+      if (stats.live) {
+        liveDot.classList.remove('is-hidden');
+        liveDot.classList.add('is-live');
+      } else {
+        liveDot.classList.add('is-hidden');
+        liveDot.classList.remove('is-live');
+      }
+    }
+
+    return { titleChanged: titleChanged, timeChanged: timeChanged, unreadChanged: unreadChanged };
+  }
+
+  // Restarts a CSS animation on `node` by forcing reflow, so a card that
+  // updates twice in a row sparkles both times instead of once.
+  function replayAnim(node, cls) {
+    if (!node) return;
+    node.classList.remove(cls);
+    void node.offsetWidth;
+    node.classList.add(cls);
+    setTimeout(function () {
+      node.classList.remove(cls);
+    }, 900);
+  }
+
+  function flashCard(card, changed) {
+    replayAnim(card, 'is-fresh');
+    if (changed.titleChanged || changed.timeChanged) {
+      replayAnim(util.slot(card, 'time'), 'is-bump');
+    }
+    if (changed.unreadChanged) {
+      replayAnim(util.slot(card, 'unread'), 'is-bump');
+    }
+  }
+
+  function findCard(roomId) {
+    if (!rootEl) return null;
+    var cards = util.$$('.room-card', rootEl);
+    for (var i = 0; i < cards.length; i++) {
+      if (cards[i].getAttribute('data-id') === roomId) return cards[i];
+    }
+    return null;
+  }
+
+  // Fires after CW.live nudges one room's data. Repaints only that card so
+  // scroll position, focus and the chip row are never disturbed.
+  function handleTick(roomId) {
+    if (!rootEl || !document.body.contains(rootEl) || CW.router.current().name !== 'rooms') {
+      CW.live.stop();
+      return;
+    }
+    var room = CW.store.room(roomId);
+    if (!room || !matchesFilter(room)) return; // filtered out — no card to touch
+
+    var card = findCard(roomId);
+    if (!card) return;
+
+    var stats = CW.store.roomStats(roomId);
+    var changed = applyStats(card, stats);
+    flashCard(card, changed);
+  }
+
   function buildRoomCard(room) {
     var card = util.tpl('tpl-room-card');
     card.setAttribute('data-id', room.id);
@@ -40,6 +140,7 @@
     util.setText(card, 'stage', room.stage);
     util.setText(card, 'desc', room.desc);
     util.setText(card, 'members', room.members);
+    addCatIcon(card, room);
 
     var stats = CW.store.roomStats(room.id);
     util.setText(card, 'title', stats.lastTitle || '아직 조용해요');
@@ -91,11 +192,13 @@
   }
 
   function render(root, params) {
+    CW.live.stop(); // no other view tears this down for us — always restart clean
     rootEl = root;
     currentParams = params || {};
     filter = { cat: enums.ALL, stage: enums.ALL };
     root.replaceChildren();
     rerender();
+    CW.live.start(handleTick);
   }
 
   function toggleAxis(axisKey, val) {

@@ -1,0 +1,256 @@
+/* ==========================================================================
+   창업 와글 — intro.css
+   런치 애니메이션 오버레이(#intro) + 헤더/카드에서 쓰는 손그림 아이콘(.ic)
+   공통 스타일. 색은 app.css의 :root 토큰만 사용합니다.
+   구조: 1.아이콘 베이스 2.오버레이 셸 3.글리프 팝인 4.타이틀 5.말풍선
+        6.건너뛰기 버튼 7.앱 리빌 8.reduced-motion
+   ========================================================================== */
+
+/* ---------- 1. 아이콘 베이스 ---------- */
+.ic {
+  width: 1em;
+  height: 1em;
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: -0.15em;
+  color: currentColor;
+}
+
+.ic--nav {
+  width: 18px;
+  height: 18px;
+  margin-right: var(--sp-1);
+  vertical-align: -3px;
+}
+
+/* ---------- 2. 오버레이 셸 ---------- */
+#intro {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 50% 40%, var(--orange-soft) 0%, var(--paper) 62%);
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.3s var(--ease-standard);
+}
+
+#intro.intro--out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#intro.intro--hidden {
+  display: none !important;
+}
+
+.intro__stage {
+  position: relative;
+  width: min(88vw, 440px);
+  height: min(88vw, 440px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.intro__glyphs {
+  position: absolute;
+  inset: 0;
+  /* 글리프 링의 좌표는 고정 px이라 무대가 좁아지면 밖으로 삐져나간다.
+     링 전체를 한 번에 줄여 어떤 폭에서도 화면 안에 들어오게 한다. */
+  transform: scale(var(--ring-k, 1));
+  transform-origin: center;
+}
+
+@media (max-width: 400px) {
+  .intro__glyphs { --ring-k: 0.74; }
+}
+
+/* ---------- 3. 글리프 팝인 ---------- */
+.intro__glyph {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-full);
+  background: var(--card);
+  box-shadow: var(--shadow-md);
+  color: var(--orange-ink);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: introGlyphIn 520ms var(--ease-out) both;
+}
+
+.intro__glyph .ic {
+  width: 23px;
+  height: 23px;
+}
+
+/* 각 글리프마다 다른 방향에서 날아와, 중심을 감싸는 느슨한 고리 위 각자의
+   자리(--fx/--fy)에 내려앉는다. 시작점(--sx/--sy)은 최종 자리와 다른
+   각도에서 오도록 일부러 어긋나게 잡았다. */
+.intro__glyph:nth-child(1) { --sx: -230px; --sy: 70px;   --fx: -118px; --fy: -18px; animation-delay: 100ms; }
+.intro__glyph:nth-child(2) { --sx: -40px;  --sy: -240px; --fx: -68px;  --fy: -96px; animation-delay: 190ms; }
+.intro__glyph:nth-child(3) { --sx: 190px;  --sy: -210px; --fx: 12px;   --fy: -116px; animation-delay: 280ms; }
+.intro__glyph:nth-child(4) { --sx: 260px;  --sy: 30px;   --fx: 96px;   --fy: -78px; animation-delay: 370ms; }
+.intro__glyph:nth-child(5) { --sx: 240px;  --sy: 170px;  --fx: 126px;  --fy: 18px;  animation-delay: 460ms; }
+.intro__glyph:nth-child(6) { --sx: -30px;  --sy: 250px;  --fx: 54px;   --fy: 100px; animation-delay: 550ms; }
+.intro__glyph:nth-child(7) { --sx: -250px; --sy: -50px;  --fx: -62px;  --fy: 92px;  animation-delay: 640ms; }
+
+@keyframes introGlyphIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translate(var(--sx), var(--sy)) scale(0.35) rotate(-9deg);
+  }
+  55% {
+    opacity: 1;
+    transform: translate(-50%, -50%) translate(var(--fx), var(--fy)) scale(1.16) rotate(4deg);
+  }
+  78% {
+    transform: translate(-50%, -50%) translate(var(--fx), var(--fy)) scale(0.93) rotate(-2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) translate(var(--fx), var(--fy)) scale(1) rotate(0deg);
+  }
+}
+
+/* ---------- 4. 타이틀 ---------- */
+.intro__title {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.intro__title-a,
+.intro__title-b {
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.intro__title-a {
+  color: var(--ink);
+  font-size: clamp(28px, 8vw, 42px);
+  animation: introTitleIn 420ms var(--ease-out) both;
+  animation-delay: 500ms;
+}
+
+.intro__title-b {
+  color: var(--orange);
+  font-size: clamp(32px, 9vw, 48px);
+  animation: introTitleBounce 460ms var(--ease-out) both;
+  animation-delay: 700ms;
+}
+
+@keyframes introTitleIn {
+  0%   { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes introTitleBounce {
+  0%   { opacity: 0; transform: translateY(16px) scale(0.9); }
+  65%  { opacity: 1; transform: translateY(-4px) scale(1.07); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ---------- 5. 말풍선 ---------- */
+.intro__bubbles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.intro__bubble {
+  position: absolute;
+  padding: 6px 13px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-full);
+  box-shadow: var(--shadow-sm);
+  font-size: 12px;
+  color: var(--ink2);
+  white-space: nowrap;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: introBubbleDrift 1400ms var(--ease-out) both;
+}
+
+.intro__bubble:nth-child(1) { left: 6%;  top: 64%; animation-delay: 1100ms; }
+.intro__bubble:nth-child(2) { right: 7%; top: 60%; animation-delay: 1180ms; }
+.intro__bubble:nth-child(3) { left: 40%; top: 74%; animation-delay: 1260ms; }
+
+@keyframes introBubbleDrift {
+  0%   { opacity: 0; transform: translateY(24px); }
+  28%  { opacity: 1; transform: translateY(4px); }
+  100% { opacity: 0; transform: translateY(-46px); }
+}
+
+/* ---------- 6. 건너뛰기 버튼 ---------- */
+.intro__skip {
+  position: absolute;
+  right: var(--sp-5);
+  bottom: var(--sp-5);
+  z-index: 3;
+  border: 1px solid var(--line2);
+  background: var(--card);
+  color: var(--ink2);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1;
+  padding: 9px 15px;
+  border-radius: var(--r-full);
+  cursor: pointer;
+}
+
+.intro__skip:hover {
+  background: var(--wash);
+}
+
+.intro__skip:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ---------- 7. 앱 리빌 ---------- */
+#app {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.25s var(--ease-out), transform 0.25s var(--ease-out);
+}
+
+body.intro-done #app {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- 8. reduced-motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  #intro {
+    display: none !important;
+  }
+
+  #app {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .intro__glyph,
+  .intro__title-a,
+  .intro__title-b,
+  .intro__bubble {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}

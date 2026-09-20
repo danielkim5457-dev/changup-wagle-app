@@ -7,20 +7,146 @@
 <title>창업 와글</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css">
 <link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/intro.css">
+<link rel="stylesheet" href="css/live.css">
 </head>
 <body>
+
+<!-- ============================================================
+     아이콘 스프라이트 — 손그림 느낌의 인라인 SVG. 화면에 보이지 않으며,
+     다른 곳에서는 <svg class="ic ..."><use href="#id"></svg> 형태로 씁니다.
+     ============================================================ -->
+<svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="ic-room" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4.4 12.3 12 5.3l7.6 7"/>
+    <path d="M6.6 11.4v7.4a1.4 1.4 0 0 0 1.4 1.4h8a1.4 1.4 0 0 0 1.4-1.4v-7.4"/>
+    <rect x="10.2" y="14.6" width="3.6" height="5.6" rx="1.6"/>
+  </symbol>
+
+  <symbol id="ic-me" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="8.1" r="3.3"/>
+    <path d="M6 19.4c0-3.6 2.7-6 6-6s6 2.4 6 6"/>
+  </symbol>
+
+  <symbol id="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="6" y="4.6" width="12" height="15.8" rx="2.2"/>
+    <path d="M9.3 4.3h5.4a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H9.3a1 1 0 0 1-1-1v-1a1 1 0 0 1 1-1z"/>
+    <path d="M8.7 13.1l2.3 2.4 4.4-5"/>
+  </symbol>
+
+  <symbol id="ic-cat-pil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4.4 12c0-2 1.6-3.6 3.6-3.6s3.6 1.6 3.6 3.6-1.6 3.6-3.6 3.6"/>
+    <path d="M7.9 8.4h9.7c1.3 0 2.4 1.6 2.4 3.6s-1.1 3.6-2.4 3.6H7.9"/>
+    <path d="M11 6.2v2.2M11 15.6v2.2"/>
+  </symbol>
+
+  <symbol id="ic-cat-cafe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 8.6c0-1.6 1.3-2.8 3-2.8s3 1.2 3 2.8"/>
+    <path d="M6.8 8.8h10.4"/>
+    <path d="M7.6 9.1l.9 9.5c.1 1 .9 1.7 1.9 1.7h3.2c1 0 1.8-.7 1.9-1.7l.9-9.5"/>
+    <path d="M10.6 3.3c-.3.6 0 1 .3 1.4M13.1 3.2c.3.6 0 1-.3 1.4"/>
+  </symbol>
+
+  <symbol id="ic-cat-shop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 8.4V6.8a3 3 0 0 1 6 0v1.6"/>
+    <path d="M7 8.2h10l1 11.2a1.7 1.7 0 0 1-1.7 1.9H7.7A1.7 1.7 0 0 1 6 19.4z"/>
+  </symbol>
+
+  <symbol id="ic-cat-beauty" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="9.1" r="5"/>
+    <path d="M12 14.1v6.3"/>
+    <path d="M9.6 20.5h4.8"/>
+  </symbol>
+
+  <symbol id="ic-cat-edu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="5.4" y="15.6" width="13.2" height="2.6" rx="1"/>
+    <rect x="6.3" y="12.3" width="11.4" height="2.6" rx="1"/>
+    <rect x="7.2" y="9" width="9.6" height="2.6" rx="1"/>
+  </symbol>
+
+  <symbol id="ic-cat-saas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="4.5" y="5.4" width="15" height="10.6" rx="2.1"/>
+    <path d="M4.5 8.6h15"/>
+    <path d="M12.6 12.2l4.5 1.9-1.7.6 1.6 2.4-1.1.7-1.6-2.4-1.1 1.4z"/>
+  </symbol>
+
+  <symbol id="ic-cat-content" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4.6 6.9a2.3 2.3 0 0 1 2.3-2.3h10.2a2.3 2.3 0 0 1 2.3 2.3v7.3a2.3 2.3 0 0 1-2.3 2.3H9.8l-3.6 3.1v-3.1H6.9a2.3 2.3 0 0 1-2.3-2.3z"/>
+    <path d="M10.3 8.7l4.5 2.6-4.5 2.6z"/>
+  </symbol>
+
+  <!-- 아바타 심볼 — 랜딩페이지 원본 그대로. 손그림 일러스트라 색이 고정이며
+       ic-* 아이콘과 달리 currentColor를 상속하지 않습니다(각 path/circle에
+       하드코딩된 fill을 그대로 유지). -->
+  <symbol id="av-0" viewBox="0 0 72 72"><rect width="72" height="72" fill="#DDE3FC"></rect><path d="M12 72c2-11 11-16 24-16s22 5 24 16z" fill="#2B4BEF"></path><path d="M30 56h12v-6H30z" fill="#F1C9AE"></path><circle cx="36" cy="39" r="15" fill="#F1C9AE"></circle><path d="M20 36c0-11 7-18 16-18s16 7 16 18c-2-6-6-9-16-9s-14 3-16 9z" fill="#1B1614"></path><circle cx="30" cy="41" r="1.7" fill="#17161A"></circle><circle cx="42" cy="41" r="1.7" fill="#17161A"></circle><path d="M31 47c2 2.5 8 2.5 10 0" fill="none" stroke="#17161A" stroke-width="1.6" stroke-linecap="round"></path><circle cx="25" cy="45" r="2.4" fill="#E8542F" opacity=".3"></circle><circle cx="47" cy="45" r="2.4" fill="#E8542F" opacity=".3"></circle></symbol>
+
+  <symbol id="av-1" viewBox="0 0 72 72"><rect width="72" height="72" fill="#FBE4DC"></rect><path d="M17 36c0-14 8-22 19-22s19 8 19 22v26H17z" fill="#2A2320"></path><path d="M12 72c2-11 11-16 24-16s22 5 24 16z" fill="#F2B33D"></path><path d="M30 56h12v-6H30z" fill="#F6D2BC"></path><circle cx="36" cy="39" r="15" fill="#F6D2BC"></circle><path d="M21 36c0-10 6-16 15-16s15 6 15 16c-3-6-7-8-15-8s-12 2-15 8z" fill="#2A2320"></path><circle cx="30" cy="41" r="1.7" fill="#17161A"></circle><circle cx="42" cy="41" r="1.7" fill="#17161A"></circle><path d="M31 47c2 2.5 8 2.5 10 0" fill="none" stroke="#17161A" stroke-width="1.6" stroke-linecap="round"></path><circle cx="25" cy="45" r="2.4" fill="#E8542F" opacity=".3"></circle><circle cx="47" cy="45" r="2.4" fill="#E8542F" opacity=".3"></circle></symbol>
+
+  <symbol id="av-2" viewBox="0 0 72 72"><rect width="72" height="72" fill="#DDE3FC"></rect><path d="M12 72c2-11 11-16 24-16s22 5 24 16z" fill="#2B4BEF"></path><path d="M30 56h12v-6H30z" fill="#F1C9AE"></path><circle cx="36" cy="39" r="15" fill="#F1C9AE"></circle><path d="M20 36c0-11 7-18 16-18s16 7 16 18c-2-6-6-9-16-9s-14 3-16 9z" fill="#1B1614"></path><circle cx="30" cy="41" r="1.7" fill="#17161A"></circle><circle cx="42" cy="41" r="1.7" fill="#17161A"></circle><path d="M31 47c2 2.5 8 2.5 10 0" fill="none" stroke="#17161A" stroke-width="1.6" stroke-linecap="round"></path><circle cx="25" cy="45" r="2.4" fill="#E8542F" opacity=".3"></circle><circle cx="47" cy="45" r="2.4" fill="#E8542F" opacity=".3"></circle></symbol>
+
+  <symbol id="av-3" viewBox="0 0 72 72"><rect width="72" height="72" fill="#EEE8DB"></rect><path d="M12 72c2-11 11-16 24-16s22 5 24 16z" fill="#17161A"></path><path d="M30 56h12v-6H30z" fill="#EFC4A6"></path><circle cx="36" cy="39" r="15" fill="#EFC4A6"></circle><path d="M20 36c0-11 7-18 16-18s16 7 16 18c-2-6-6-9-16-9s-14 3-16 9z" fill="#2A2320"></path><circle cx="30" cy="41" r="1.7" fill="#17161A"></circle><circle cx="42" cy="41" r="1.7" fill="#17161A"></circle><path d="M31 47c2 2.5 8 2.5 10 0" fill="none" stroke="#17161A" stroke-width="1.6" stroke-linecap="round"></path><circle cx="25" cy="45" r="2.4" fill="#E8542F" opacity=".3"></circle><circle cx="47" cy="45" r="2.4" fill="#E8542F" opacity=".3"></circle><g fill="none" stroke="#17161A" stroke-width="1.6"><circle cx="29" cy="40" r="5"></circle><circle cx="43" cy="40" r="5"></circle><path d="M34 40h4"></path></g></symbol>
+
+  <symbol id="av-4" viewBox="0 0 72 72"><rect width="72" height="72" fill="#FBE4DC"></rect><path d="M18 36c0-13 8-20 18-20s18 7 18 20v14H18z" fill="#3B2A22"></path><path d="M12 72c2-11 11-16 24-16s22 5 24 16z" fill="#E8542F"></path><path d="M30 56h12v-6H30z" fill="#F6D2BC"></path><circle cx="36" cy="39" r="15" fill="#F6D2BC"></circle><path d="M21 37c0-10 6-16 15-16s15 6 15 16c-2-5-6-9-15-9s-13 4-15 9z" fill="#3B2A22"></path><circle cx="30" cy="41" r="1.7" fill="#17161A"></circle><circle cx="42" cy="41" r="1.7" fill="#17161A"></circle><path d="M31 47c2 2.5 8 2.5 10 0" fill="none" stroke="#17161A" stroke-width="1.6" stroke-linecap="round"></path><circle cx="25" cy="45" r="2.4" fill="#E8542F" opacity=".3"></circle><circle cx="47" cy="45" r="2.4" fill="#E8542F" opacity=".3"></circle></symbol>
+
+  <symbol id="av-5" viewBox="0 0 72 72"><rect width="72" height="72" fill="#FFF1D6"></rect><path d="M12 72c2-11 11-16 24-16s22 5 24 16z" fill="#8A5CF6"></path><path d="M30 56h12v-6H30z" fill="#EFC4A6"></path><circle cx="36" cy="39" r="15" fill="#EFC4A6"></circle><path d="M20 36c0-11 7-18 16-18s16 7 16 18c-2-6-6-9-16-9s-14 3-16 9z" fill="#2A2320"></path><circle cx="30" cy="41" r="1.7" fill="#17161A"></circle><circle cx="42" cy="41" r="1.7" fill="#17161A"></circle><path d="M31 47c2 2.5 8 2.5 10 0" fill="none" stroke="#17161A" stroke-width="1.6" stroke-linecap="round"></path><circle cx="25" cy="45" r="2.4" fill="#E8542F" opacity=".3"></circle><circle cx="47" cy="45" r="2.4" fill="#E8542F" opacity=".3"></circle></symbol>
+
+  <symbol id="av-6" viewBox="0 0 72 72"><rect width="72" height="72" fill="#E6F4EC"></rect><path d="M12 72c2-11 11-16 24-16s22 5 24 16z" fill="#2BB673"></path><path d="M30 56h12v-6H30z" fill="#F1C9AE"></path><circle cx="36" cy="39" r="15" fill="#F1C9AE"></circle><circle cx="36" cy="16" r="6" fill="#1B1614"></circle><path d="M20 36c0-11 7-18 16-18s16 7 16 18c-2-6-6-9-16-9s-14 3-16 9z" fill="#1B1614"></path><circle cx="30" cy="41" r="1.7" fill="#17161A"></circle><circle cx="42" cy="41" r="1.7" fill="#17161A"></circle><path d="M31 47c2 2.5 8 2.5 10 0" fill="none" stroke="#17161A" stroke-width="1.6" stroke-linecap="round"></path><circle cx="25" cy="45" r="2.4" fill="#E8542F" opacity=".3"></circle><circle cx="47" cy="45" r="2.4" fill="#E8542F" opacity=".3"></circle></symbol>
+</svg>
+
+<!-- ============================================================
+     인트로 오버레이 — 정적 마크업으로 미리 그려둠(깜빡임 방지).
+     js/15-intro.js 가 재생·해제를 담당합니다.
+     ============================================================ -->
+<div id="intro" role="dialog" aria-label="창업 와글">
+  <div class="intro__stage" aria-hidden="true">
+    <div class="intro__glyphs">
+      <span class="intro__glyph"><svg class="ic"><use href="#ic-cat-pil"></use></svg></span>
+      <span class="intro__glyph"><svg class="ic"><use href="#ic-cat-cafe"></use></svg></span>
+      <span class="intro__glyph"><svg class="ic"><use href="#ic-cat-shop"></use></svg></span>
+      <span class="intro__glyph"><svg class="ic"><use href="#ic-cat-beauty"></use></svg></span>
+      <span class="intro__glyph"><svg class="ic"><use href="#ic-cat-edu"></use></svg></span>
+      <span class="intro__glyph"><svg class="ic"><use href="#ic-cat-saas"></use></svg></span>
+      <span class="intro__glyph"><svg class="ic"><use href="#ic-cat-content"></use></svg></span>
+    </div>
+    <p class="intro__title">
+      <span class="intro__title-a">창업</span><span class="intro__title-b">와글</span>
+    </p>
+    <div class="intro__bubbles">
+      <span class="intro__bubble">그때 뭐 고르셨어요?</span>
+      <span class="intro__bubble">저는 1인으로 갔어요</span>
+      <span class="intro__bubble">접었어요</span>
+    </div>
+  </div>
+  <button type="button" id="intro-skip" class="intro__skip">건너뛰기</button>
+</div>
 
 <header class="site-header">
   <div class="site-header__row">
     <span class="logo">창업 와글</span>
     <nav id="nav" class="nav" aria-label="주요 메뉴">
-      <a href="#/rooms" data-act="nav" data-val="rooms">방</a>
-      <a href="#/me" data-act="nav" data-val="me">내 조건</a>
-      <a href="#/check" data-act="nav" data-val="check">체크리스트</a>
+      <a href="#/rooms" data-act="nav" data-val="rooms"><svg class="ic ic--nav" aria-hidden="true"><use href="#ic-room"></use></svg>방</a>
+      <a href="#/me" data-act="nav" data-val="me"><svg class="ic ic--nav" aria-hidden="true"><use href="#ic-me"></use></svg>내 조건</a>
+      <a href="#/check" data-act="nav" data-val="check"><svg class="ic ic--nav" aria-hidden="true"><use href="#ic-check"></use></svg>체크리스트</a>
     </nav>
   </div>
   <p class="site-header__notice">지금은 예시 데이터로 도는 데모입니다.</p>
 </header>
+
+<!-- ============================================================
+     배경 장식 — 랜딩페이지의 떠다니는 말풍선. 클릭을 가로채지 않도록
+     pointer-events:none (css/app.css). 텍스트 색만 두 가지 변형(float--o,
+     float--b)으로 나뉘며 실제 스타일은 다른 에이전트가 담당하는 CSS에서.
+     ============================================================ -->
+<div id="decor" aria-hidden="true">
+  <span class="float float--o">같은 성동구예요</span>
+  <span class="float float--b">저도요</span>
+  <span class="float float--o">접은 이유가 궁금해요</span>
+  <span class="float float--b">주차가 진짜 중요해요</span>
+  <span class="float float--o">MVP 먼저 만들까요</span>
+  <span class="float float--b">권리금이 걱정이에요</span>
+  <span class="float float--o">그때 뭐 고르셨어요</span>
+  <span class="float float--b">혼자 하기엔 벅차더라고요</span>
+</div>
 
 <main id="app"></main>
 
@@ -162,12 +288,14 @@
 <script src="js/00-ns.js"></script>
 <script src="js/01-util.js"></script>
 <script src="js/10-enums.js"></script>
+<script src="js/15-intro.js"></script>
 <script src="js/11-seed-rooms.js"></script>
 <script src="js/12-seed-qa-core.js"></script>
 <script src="js/13-seed-qa-tail.js"></script>
 <script src="js/14-seed-checklist.js"></script>
 <script src="js/20-store.js"></script>
 <script src="js/21-match.js"></script>
+<script src="js/22-live.js"></script>
 <script src="js/30-router.js"></script>
 <script src="js/40-view-rooms.js"></script>
 <script src="js/41-view-room.js"></script>
