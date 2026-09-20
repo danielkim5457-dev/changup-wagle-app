@@ -1,5 +1,7 @@
 # 창업 와글 데모
 
+**보러 가기 → https://danielkim5457-dev.github.io/changup-wagle-app/**
+
 같은 업종, 같은 단계였던 사람이 그때 뭘 골랐는지 보여주려고 만든 화면입니다.
 업종과 단계로 방을 좁히고, 들어가서 질문 하나를 보면 답이 쌓여 있습니다 — 접은 사람 답도 똑같이 남습니다.
 지금 쓰는 데이터는 전부 예시이고, 여기서 쓴 글은 이 브라우저에만 남습니다.
@@ -19,18 +21,23 @@
 
 끝입니다. `file://`로 바로 열립니다.
 
-## GitHub Pages로 올리기
+## 배포
 
-1. GitHub에 새 저장소를 만듭니다.
-2. 이 폴더에서 순서대로:
-   ```
-   git remote add origin <저장소 주소>
-   git push -u origin main
-   ```
-   (이 폴더는 이미 `git init`과 첫 커밋까지 되어 있습니다. 브랜치 이름이 `master`로 나오면 `git branch -M main`을 먼저 실행하세요.)
-3. 저장소 Settings → Pages → Build and deployment에서 `Deploy from a branch`를 고르고, 브랜치는 `main`, 폴더는 `/(root)`로 둡니다.
-4. 2~3분 기다린 뒤 발급된 주소로 들어갑니다.
-5. **꼭 프라이빗(시크릿) 창에서 확인하세요.** 일반 창은 예전 캐시를 그대로 보여줄 수 있습니다.
+이미 GitHub Pages로 올라가 있습니다.
+
+| 항목 | 값 |
+| --- | --- |
+| 주소 | https://danielkim5457-dev.github.io/changup-wagle-app/ |
+| 저장소 | `danielkim5457-dev/changup-wagle-app` |
+| 방식 | Deploy from a branch — `main` / `(root)` |
+
+고친 내용을 반영하려면 `git push`만 하면 됩니다. 2~3분 뒤 자동으로 다시 배포됩니다.
+
+```
+git add -A && git commit -m "메시지" && git push
+```
+
+**확인할 때는 꼭 시크릿 창을 쓰세요.** 일반 창은 예전 파일을 캐시에서 그대로 보여줍니다. 발표 직전에 고쳤는데 화면이 안 바뀌는 사고가 대부분 여기서 납니다.
 
 ## 시연 가이드
 
