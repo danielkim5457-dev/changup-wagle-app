@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>창업 와글</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header__row">
+    <span class="logo">창업 와글</span>
+    <nav id="nav" class="nav" aria-label="주요 메뉴">
+      <a href="#/rooms" data-act="nav" data-val="rooms">방</a>
+      <a href="#/me" data-act="nav" data-val="me">내 조건</a>
+      <a href="#/check" data-act="nav" data-val="check">체크리스트</a>
+    </nav>
+  </div>
+  <p class="site-header__notice">지금은 예시 데이터로 도는 데모입니다.</p>
+</header>
+
+<main id="app"></main>
+
+<!-- ============================================================
+     템플릿 — 뷰 에이전트가 clone 후 data-slot에 textContent로 채웁니다.
+     ============================================================ -->
+
+<template id="tpl-room-card">
+  <article class="room-card" data-act="open-room" data-id="" tabindex="0" role="button">
+    <header class="room-card__head">
+      <h3 class="room-card__name"><span data-slot="room"></span> · <span data-slot="stage"></span></h3>
+      <span class="live-dot is-hidden" aria-label="새 글 진행 중"></span>
+    </header>
+    <p class="room-card__desc" data-slot="desc"></p>
+    <p class="room-card__members">
+      <span data-slot="members"></span>명 참여
+      <span class="badge-example">예시</span>
+    </p>
+    <div class="room-card__last">
+      <p class="room-card__last-title" data-slot="title"></p>
+      <div class="room-card__meta">
+        <span class="room-card__time" data-slot="time"></span>
+        <span class="unread-count is-hidden" data-slot="unread"></span>
+      </div>
+    </div>
+  </article>
+</template>
+
+<template id="tpl-question-row">
+  <li class="question-row" data-act="open-q" data-id="" tabindex="0" role="button">
+    <p class="question-row__title" data-slot="title"></p>
+    <div class="question-row__meta">
+      <span class="question-row__count" data-slot="count"></span>
+      <span class="question-row__time" data-slot="time"></span>
+    </div>
+  </li>
+</template>
+
+<template id="tpl-answer-card">
+  <article class="answer-card" data-id="">
+    <header class="answer-card__head">
+      <p class="answer-card__pick" data-slot="pick"></p>
+      <span class="tag-quit is-hidden">접었어요</span>
+    </header>
+    <p class="answer-card__why" data-slot="why"></p>
+    <div class="answer-card__tags" data-slot="tags"></div>
+    <footer class="answer-card__foot">
+      <div class="author">
+        <span class="avatar" data-slot="avatar" data-avatar="0"></span>
+        <span class="author__nick" data-slot="nick"></span>
+      </div>
+      <span class="match-badge is-hidden" data-slot="count"></span>
+      <span class="answer-card__time" data-slot="time"></span>
+    </footer>
+  </article>
+</template>
+
+<template id="tpl-tally-row">
+  <li class="tally-row">
+    <div class="tally-row__head">
+      <span class="tally-row__label" data-slot="label"></span>
+      <span class="tally-row__count" data-slot="count"></span>
+    </div>
+    <div class="tally-row__bar-track">
+      <div class="tally-row__bar" data-slot="bar"></div>
+    </div>
+  </li>
+</template>
+
+<template id="tpl-tag-chip">
+  <span class="tag-chip" data-slot="label"></span>
+</template>
+
+<template id="tpl-chip">
+  <button type="button" class="chip" data-act="" data-val="">
+    <span data-slot="label"></span>
+  </button>
+</template>
+
+<template id="tpl-empty">
+  <p class="empty-msg" data-slot="label"></p>
+</template>
+
+<!--
+  훅 인벤토리 (계획 10절 대비 실제 배출 목록 — 발명·개명 없음)
+
+  컨테이너: #app, #nav
+
+  템플릿(7): tpl-room-card, tpl-question-row, tpl-answer-card,
+             tpl-tally-row, tpl-tag-chip, tpl-chip, tpl-empty
+
+  data-act 배출처 (모두 계획 10절 목록의 이름 그대로):
+    - 헤더 nav 링크 3개: data-act="nav" (data-val="rooms|me|check")
+    - tpl-room-card 루트: data-act="open-room" (data-id는 뷰가 clone 후 채움)
+    - tpl-question-row 루트: data-act="open-q" (data-id는 뷰가 clone 후 채움)
+    - tpl-chip 내부 button: data-act="" data-val="" 빈 값으로 둠 —
+      이 템플릿은 filter-cat/filter-stage/set-cat/set-stage/
+      tag-add/tag-remove 6개 컨텍스트에 재사용되므로, 어느 값을 쓸지는
+      clone 시점에 뷰가 결정해 채웁니다(계획에 이름이 이미 확정돼
+      있으므로 템플릿 쪽 발명은 없음).
+    - ask-open, ask-cancel, ask-submit, answer-submit, toggle-mine,
+      toggle-check, reset-open, reset-confirm, reset-cancel, back 은
+      #app 내부가 완전히 뷰 스크립트 렌더 결과이므로(계획 9절 "root를
+      replaceChildren 후 다시 그림") index.html 정적 마크업에는
+      나타나지 않습니다. 뷰 에이전트(40~44)가 계획 10절의 이름을
+      그대로 사용해야 합니다.
+
+  data-slot 배출처(템플릿 내부, 계획 10절 16개 중 아래 15개를 사용):
+    tpl-room-card: room, stage, desc, members, title, time, unread
+    tpl-question-row: title, count, time
+    tpl-answer-card: pick, why, tags, avatar, nick, count(매치 뱃지), time
+    tpl-tally-row: label, count, bar
+    tpl-tag-chip: label
+    tpl-chip: label
+    tpl-empty: label
+  미사용: "body" — 질문 상세 카드 본문은 #app 렌더 시 뷰가 직접 만드는
+    정적 영역(템플릿 대상이 아님)에서 쓰일 것으로 예상되어 여기 템플릿에는
+    등장하지 않습니다. 필요 시 42-view-question.js에서 동일 이름으로
+    사용하면 됩니다.
+  재사용 안내: tpl-answer-card의 매치 뱃지("조건 N개 같음")는 전용 슬롯이
+    계획에 없어, 이미 승인된 "count" 슬롯 이름을 그 카드 스코프 안에서
+    재사용했습니다(같은 카드 안에서 "count"가 중복 정의되지 않으므로
+    CW.util.slot()의 단일 querySelector 동작과 충돌 없음).
+
+  상태 클래스 배치:
+    - .is-hidden: tpl-room-card의 .live-dot, .unread-count /
+      tpl-answer-card의 .tag-quit, .match-badge 에 기본 적용.
+      (라이브 점·새 글 수·접었어요 라벨·매치 뱃지는 값이 있을 때만
+      뷰가 is-hidden을 제거합니다.)
+    - .is-live: .live-dot 에 뷰가 조건 충족 시 추가(스타일 강조용).
+      기본 마크업엔 없음(꺼진 상태가 기본).
+    - .is-active .is-quit .is-mine .is-match .is-open .is-disabled:
+      전부 런타임에 뷰가 root/개별 요소에 토글. 정적 템플릿엔 없음.
+
+  계획 10절 대비 편차: 없음. cat/quitCount 등은 초안에서 검토 후
+  room/stage/count로 정리해 전량 계획 어휘 내에서 해결했습니다.
+-->
+
+<script src="js/00-ns.js"></script>
+<script src="js/01-util.js"></script>
+<script src="js/10-enums.js"></script>
+<script src="js/11-seed-rooms.js"></script>
+<script src="js/12-seed-qa-core.js"></script>
+<script src="js/13-seed-qa-tail.js"></script>
+<script src="js/14-seed-checklist.js"></script>
+<script src="js/20-store.js"></script>
+<script src="js/21-match.js"></script>
+<script src="js/30-router.js"></script>
+<script src="js/40-view-rooms.js"></script>
+<script src="js/41-view-room.js"></script>
+<script src="js/42-view-question.js"></script>
+<script src="js/43-view-me.js"></script>
+<script src="js/44-view-check.js"></script>
+<script src="js/90-app.js"></script>
+</body>
+</html>
