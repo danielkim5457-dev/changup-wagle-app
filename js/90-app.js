@@ -80,6 +80,12 @@
 
     setNavActive(route.name);
     window.scrollTo(0, 0);
+
+    // 화면 전환 시 본문을 한 번 떠오르게 한다. 클래스를 뗐다 다시 붙여야
+    // 같은 애니메이션이 매번 재생된다(강제 리플로우).
+    appEl.classList.remove('is-entering');
+    void appEl.offsetWidth;
+    appEl.classList.add('is-entering');
   }
 
   function dispatch(action, id, val, el) {

@@ -1,0 +1,72 @@
+/* ==========================================================================
+   motion-rooms.css — 방 목록(#/rooms) 화면 전용 모션.
+   app.css 다음에 로드됩니다. 이 파일에서 새로 정의하는 색은 없고,
+   전부 app.css :root 토큰(--orange, --blue, --white, --shadow-*, --ease-*)만
+   참조합니다.
+
+   핵심 연출: 칩을 누르면 방이 목록에서 사라지지 않고 색을 잃는다.
+   40-view-rooms.js가 .is-dim 클래스와 style.order만 토글하고, 실제 등장/
+   퇴장 느낌은 전부 이 파일의 transition/animation이 만든다.
+   ========================================================================== */
+
+/* ---------- 1. 필터 = 제거가 아니라 흐림 ---------- */
+.room-card {
+  /* app.css의 기존 hover/focus 전환(box-shadow, border-color)을 그대로
+     이어받고, transform은 420ms로 통일 — 좁혀지는 카드의 scale(.985)과
+     hover의 살짝 뜨는 효과가 같은 리듬을 쓰게 한다. */
+  transition: opacity 420ms var(--ease-standard),
+              filter 420ms var(--ease-standard),
+              transform 420ms var(--ease-standard),
+              box-shadow 0.15s var(--ease-standard),
+              border-color 0.15s var(--ease-standard);
+}
+
+.room-card.is-dim {
+  opacity: .18;
+  filter: grayscale(1);
+  transform: scale(.985);
+  pointer-events: none; /* 흐려진 방은 마우스로도 눌리면 안 됨 */
+}
+
+/* ---------- 2. 살아남은 카드의 짧은 강조 펄스 (~500ms) ---------- */
+.room-card.is-match-pulse {
+  animation: cw-room-match-pulse 500ms var(--ease-out);
+}
+
+@keyframes cw-room-match-pulse {
+  0%   { box-shadow: var(--shadow-sm); }
+  35%  { transform: scale(1.03); box-shadow: var(--shadow-md), 0 0 0 2px var(--orange-line); }
+  100% { transform: scale(1); box-shadow: var(--shadow-sm); }
+}
+
+/* ---------- 3. 첫 진입 스태거 ---------- */
+.room-card.is-entering {
+  animation: cw-room-enter 420ms var(--ease-out) both;
+}
+
+@keyframes cw-room-enter {
+  0%   { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- 4. 단계(파랑) 축 칩 — 업종(코랄) 축과 색으로 구분 ---------- */
+.chip--stage.is-active {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: var(--white);
+}
+
+/* ---------- 5. 동작 축소 선호 ----------
+   흐림 자체는 유지하되(그래야 필터가 "작동"함), 전환/애니메이션 지속
+   시간만 없애 즉시 반영되게 한다. */
+@media (prefers-reduced-motion: reduce) {
+  .room-card {
+    transition: none !important;
+  }
+  .room-card.is-match-pulse,
+  .room-card.is-entering {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -1,6 +1,11 @@
 'use strict';
 (function () {
   // #/rooms — 방 목록(홈). 업종·단계 칩으로 좁혀 방을 고르는 첫 화면.
+  //
+  // 필터를 누르면 리스트를 다시 그리지 않는다. 35개 카드는 처음 한 번만
+  // 그리고, 이후에는 매치 여부에 따라 .is-dim 클래스와 style.order만
+  // 바꾼다 — "35개가 1개로 좁혀지는 장면"이 이 화면의 핵심 연출이므로,
+  // 카드가 사라지는 대신 색을 잃고 뒤로 물러나야 한다.
 
   var util = CW.util;
   var enums = CW.enums;
@@ -11,7 +16,23 @@
   // Transient filter state — never goes in the URL (plan 4.1).
   var filter = { cat: enums.ALL, stage: enums.ALL };
 
-  function buildChipRow(values, activeVal, act) {
+  // 화면이 살아있는 동안 계속 참조하는 노드/상태.
+  var gridEl = null;
+  var countNumEl = null;
+  var cardsById = null;       // Map<roomId, cardEl> — 전체 렌더 때 한 번만 채움
+  var lastCount = null;       // 카운트 애니메이션의 이전 값
+  var countAnimId = null;     // requestAnimationFrame 핸들
+  var entranceCleanupTimer = null;
+
+  function prefersReducedMotion() {
+    try {
+      return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function buildChipRow(values, activeVal, act, extraCls) {
     var wrap = util.el('div', 'chip-row-wrap');
     var row = util.el('div', 'chip-row');
     var all = [enums.ALL].concat(values);
@@ -19,6 +40,7 @@
       var chip = util.tpl('tpl-chip');
       chip.setAttribute('data-act', act);
       chip.setAttribute('data-val', v);
+      if (extraCls) chip.classList.add(extraCls);
       util.setText(chip, 'label', v);
       if (v === activeVal) chip.classList.add('is-active');
       row.appendChild(chip);
@@ -86,14 +108,17 @@
 
   // Restarts a CSS animation on `node` by forcing reflow, so a card that
   // updates twice in a row sparkles both times instead of once.
-  function replayAnim(node, cls) {
+  // `ms` lets callers pick a cleanup delay that matches their own
+  // animation's duration (defaults to the 900ms live-pulse case).
+  function replayAnim(node, cls, ms) {
     if (!node) return;
+    var duration = typeof ms === 'number' ? ms : 900;
     node.classList.remove(cls);
     void node.offsetWidth;
     node.classList.add(cls);
     setTimeout(function () {
       node.classList.remove(cls);
-    }, 900);
+    }, duration);
   }
 
   function flashCard(card, changed) {
@@ -106,15 +131,6 @@
     }
   }
 
-  function findCard(roomId) {
-    if (!rootEl) return null;
-    var cards = util.$$('.room-card', rootEl);
-    for (var i = 0; i < cards.length; i++) {
-      if (cards[i].getAttribute('data-id') === roomId) return cards[i];
-    }
-    return null;
-  }
-
   // Fires after CW.live nudges one room's data. Repaints only that card so
   // scroll position, focus and the chip row are never disturbed.
   function handleTick(roomId) {
@@ -123,9 +139,9 @@
       return;
     }
     var room = CW.store.room(roomId);
-    if (!room || !matchesFilter(room)) return; // filtered out — no card to touch
+    if (!room || !matchesFilter(room)) return; // dimmed — never flash a room that's filtered out
 
-    var card = findCard(roomId);
+    var card = cardsById ? cardsById.get(roomId) : null;
     if (!card) return;
 
     var stats = CW.store.roomStats(roomId);
@@ -161,34 +177,151 @@
     return card;
   }
 
-  function rerender() {
-    rootEl.replaceChildren();
+  // Ticks the count line from its old value to `newCount` over ~400ms.
+  // A ±1 change (or reduced-motion) just snaps — animating 35→34 is noise.
+  function animateCount(newCount) {
+    if (!countNumEl) return;
+    var oldCount = (lastCount === null) ? newCount : lastCount;
+    lastCount = newCount;
+    var diff = newCount - oldCount;
 
-    rootEl.appendChild(buildChipRow(enums.CATS, filter.cat, 'filter-cat'));
-    rootEl.appendChild(buildChipRow(enums.STAGES, filter.stage, 'filter-stage'));
+    if (countAnimId !== null) {
+      cancelAnimationFrame(countAnimId);
+      countAnimId = null;
+    }
 
-    var allRooms = CW.store.rooms();
-    var filtered = allRooms.filter(matchesFilter);
-
-    var countLine = util.el('p', 'rooms-count');
-    countLine.appendChild(document.createTextNode('지금 열린 방 '));
-    var numEl = util.el('span', 'rooms-count__num', String(filtered.length));
-    countLine.appendChild(numEl);
-    countLine.appendChild(document.createTextNode('개'));
-    rootEl.appendChild(countLine);
-
-    if (filtered.length === 0) {
-      var empty = util.tpl('tpl-empty');
-      util.setText(empty, 'label', '이 조건은 아직 조용해요. 축을 하나 풀어 보세요.');
-      rootEl.appendChild(empty);
+    if (diff === 0 || Math.abs(diff) === 1 || prefersReducedMotion()) {
+      countNumEl.textContent = String(newCount);
       return;
     }
 
-    var grid = util.el('div', 'room-grid');
-    filtered.forEach(function (room) {
-      grid.appendChild(buildRoomCard(room));
+    var duration = 400;
+    var start = null;
+
+    function step(ts) {
+      if (start === null) start = ts;
+      var progress = Math.min(1, (ts - start) / duration);
+      countNumEl.textContent = String(Math.round(oldCount + diff * progress));
+      if (progress < 1) {
+        countAnimId = requestAnimationFrame(step);
+      } else {
+        countNumEl.textContent = String(newCount);
+        countAnimId = null;
+      }
+    }
+    countAnimId = requestAnimationFrame(step);
+  }
+
+  // Walks every already-drawn card and toggles dim/order/interactivity —
+  // never rebuilds the grid. Matching cards float to the front via
+  // style.order (grid honours it same as flex, no DOM move needed) and get
+  // a brief pulse the moment they *become* matching.
+  function applyFilterState() {
+    if (!gridEl || !cardsById) return;
+
+    var allRooms = CW.store.rooms();
+    var matchCount = 0;
+    var missCount = 0;
+    var pulseCards = [];
+
+    allRooms.forEach(function (room) {
+      var card = cardsById.get(room.id);
+      if (!card) return;
+
+      var isMatch = matchesFilter(room);
+      var wasDim = card.classList.contains('is-dim');
+
+      if (isMatch) {
+        if (wasDim) pulseCards.push(card);
+        card.classList.remove('is-dim');
+        card.tabIndex = 0;
+        card.setAttribute('data-act', 'open-room'); // restore clickability
+        card.style.order = String(matchCount);
+        matchCount++;
+      } else {
+        card.classList.add('is-dim');
+        card.tabIndex = -1;
+        card.removeAttribute('data-act'); // belt-and-suspenders: no data-act means the
+        card.style.order = String(100 + missCount); // delegated click/keydown handlers ignore it
+        missCount++;
+      }
     });
-    rootEl.appendChild(grid);
+
+    pulseCards.forEach(function (card) {
+      replayAnim(card, 'is-match-pulse', 600);
+    });
+
+    animateCount(matchCount);
+  }
+
+  // Rebuilds the two chip rows' active state in place (cheap — 13 buttons)
+  // and re-applies dim/order to the untouched card grid.
+  function refreshFilter() {
+    util.$$('[data-act="filter-cat"]', rootEl).forEach(function (chip) {
+      chip.classList.toggle('is-active', chip.getAttribute('data-val') === filter.cat);
+    });
+    util.$$('[data-act="filter-stage"]', rootEl).forEach(function (chip) {
+      chip.classList.toggle('is-active', chip.getAttribute('data-val') === filter.stage);
+    });
+    applyFilterState();
+  }
+
+  // Full draw — chips, count line, and every room card. Runs once per
+  // `render()` (route entry), never on a filter press.
+  function buildLayout() {
+    rootEl.replaceChildren();
+    cardsById = new Map();
+
+    var chipsWrap = util.el('div', 'rooms-chips');
+    chipsWrap.appendChild(buildChipRow(enums.CATS, filter.cat, 'filter-cat'));
+    chipsWrap.appendChild(buildChipRow(enums.STAGES, filter.stage, 'filter-stage', 'chip--stage'));
+    rootEl.appendChild(chipsWrap);
+
+    var countLine = util.el('p', 'rooms-count');
+    countLine.appendChild(document.createTextNode('지금 열린 방 '));
+    countNumEl = util.el('span', 'rooms-count__num', '0');
+    countLine.appendChild(countNumEl);
+    countLine.appendChild(document.createTextNode('개'));
+    rootEl.appendChild(countLine);
+
+    var allRooms = CW.store.rooms();
+
+    if (allRooms.length === 0) {
+      var empty = util.tpl('tpl-empty');
+      util.setText(empty, 'label', '이 조건은 아직 조용해요. 축을 하나 풀어 보세요.');
+      rootEl.appendChild(empty);
+      gridEl = null;
+      lastCount = 0;
+      countNumEl.textContent = '0';
+      return;
+    }
+
+    gridEl = util.el('div', 'room-grid');
+
+    // ~25ms stagger, but clamped so the total never runs past ~500ms —
+    // with 35 rooms a flat 25ms/card would take 850ms for the last card.
+    var n = allRooms.length;
+    var maxTotalDelay = 500;
+    var step = n > 1 ? Math.min(25, maxTotalDelay / (n - 1)) : 0;
+
+    allRooms.forEach(function (room, i) {
+      var card = buildRoomCard(room);
+      card.classList.add('is-entering');
+      card.style.animationDelay = Math.round(i * step) + 'ms';
+      cardsById.set(room.id, card);
+      gridEl.appendChild(card);
+    });
+    rootEl.appendChild(gridEl);
+
+    lastCount = null; // no previous value yet — first count paint should not tick
+    applyFilterState();
+
+    if (entranceCleanupTimer !== null) clearTimeout(entranceCleanupTimer);
+    var totalEntranceMs = Math.round((n - 1) * step) + 420 + 80;
+    entranceCleanupTimer = setTimeout(function () {
+      cardsById.forEach(function (card) { card.classList.remove('is-entering'); });
+      entranceCleanupTimer = null;
+    }, totalEntranceMs);
   }
 
   function render(root, params) {
@@ -196,8 +329,22 @@
     rootEl = root;
     currentParams = params || {};
     filter = { cat: enums.ALL, stage: enums.ALL };
+
+    if (entranceCleanupTimer !== null) {
+      clearTimeout(entranceCleanupTimer);
+      entranceCleanupTimer = null;
+    }
+    if (countAnimId !== null) {
+      cancelAnimationFrame(countAnimId);
+      countAnimId = null;
+    }
+    cardsById = null;
+    gridEl = null;
+    countNumEl = null;
+    lastCount = null;
+
     root.replaceChildren();
-    rerender();
+    buildLayout();
     CW.live.start(handleTick);
   }
 
@@ -212,12 +359,12 @@
   function act(action, ctx) {
     if (action === 'filter-cat') {
       toggleAxis('cat', ctx.val);
-      rerender();
+      refreshFilter();
       return;
     }
     if (action === 'filter-stage') {
       toggleAxis('stage', ctx.val);
-      rerender();
+      refreshFilter();
       return;
     }
     if (action === 'open-room') {
